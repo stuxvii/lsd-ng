@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     image: nginx:alpine
@@ -21,9 +19,14 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MARIADB_ROOT_PASSWORD: change_this_fam 
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
       MARIADB_DATABASE: lsd
       MARIADB_USER: lsd
-      MARIADB_PASSWORD: set_at_.env_please 
+    env_file:
+      - .env 
     volumes:
       - mariadb_data:/var/lib/mysql
+
+volumes:
+  mariadb_data:
