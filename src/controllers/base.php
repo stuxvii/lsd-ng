@@ -1,4 +1,7 @@
 <?php
+namespace LSD\Controllers;
+require_once dirname(__DIR__) . "/models/database.php";
+require_once dirname(__DIR__) . "/models/user.php";
 class BaseController {
     protected $model;
     protected $db;
@@ -8,8 +11,8 @@ class BaseController {
     protected $economy = null;
 
     public function __CONSTRUCT() {
-        $this->db = Database::connect();
-        $this->model = new UserModel();
+        $this->db = \LSD\Models\Database::connect();
+        $this->model = new \LSD\Models\UserModel();
 
         if (isset($_COOKIE["auth"])) {
             $this->user_info = $this->model->findUserByAuthToken($_COOKIE["auth"]);

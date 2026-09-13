@@ -1,28 +1,30 @@
 <?php
-require (__DIR__ . '/deps/altorouter.php');
-
-// Source - https://stackoverflow.com/a/2692368
-// Posted by soulmerge
-// Retrieved 2026-09-07, License - CC BY-SA 2.5
-
-foreach (scandir(__DIR__ . "/controllers/") as $filename) {
-    $path = __DIR__ . '/' . $filename;
-    echo $path;
-    if (is_file($path)) {
-        require_once $path;
-    }
-}
-
-$router = new AltoRouter();
+namespace LSD;
+use LSD\Controllers\MainController;
+$router = new \AltoRouter();
 $route = function (string $method, string $route, $func) use ($router) {
-    $router->map($method, $route, $func);
-};
+    $router->map($method, $route, $func); };
 
-$route('GET', '/betaslam', MainController->Main());
+$route('GET', '/', 'LSD\Controllers\MainController#Main');
 
 $match = $router->match();
-if (is_array($match) && is_callable($match['target'])) {
-    call_user_func_array($match['target'], $match['params']);
+if ($match) {
+    $target = $match["target"];
+
+    if (\is_string($target) && strpos($target, '#') !== false) {
+        list($controllerName, $methodName) = explode('#', $target);
+        if (class_exists($controllerName)) {
+            $controller = new $controllerName();
+
+            if (method_exists($controller, $methodName)) {
+                \call_user_func_array([$controller, $methodName], $match['params']);
+            } else {
+                throw new \Exception("Method {$methodName} not found in {$controllerName}");
+            }
+        } else {
+            throw new \Exception("Class {$controllerName} not found");
+        }
+    }
 } else {
     http_response_code(404);
     require __DIR__ . '/views/errors/404.php';

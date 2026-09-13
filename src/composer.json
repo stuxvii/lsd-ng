@@ -1,0 +1,20 @@
+{
+    "name": "acid/lsd",
+    "description": "lsdblox",
+    "type": "project",
+    "license": "AGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "acidbox93"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "LSD\\Controllers\\": "controllers/",
+            "LSD\\Models\\": "models/"
+        }
+    },
+    "require": {
+        "altorouter/altorouter": "^2.0"
+    }
+}

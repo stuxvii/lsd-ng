@@ -1,4 +1,5 @@
 <?php
+namespace LSD\Models;
 class UserModel {
     private $db;
 
