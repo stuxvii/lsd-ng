@@ -1,11 +1,16 @@
 <?php
 namespace LSD;
-use LSD\Controllers\MainController;
+
 $router = new \AltoRouter();
 $route = function (string $method, string $route, $func) use ($router) {
-    $router->map($method, $route, $func); };
+    $router->map($method, $route, $func);
+};
 
 $route('GET', '/', 'LSD\Controllers\MainController#Main');
+$route('POST', '/session', 'LSD\Controllers\AuthController#Login');
+$route('GET', '/session', 'LSD\Controllers\AuthController#Sessions');
+$route('GET', '/session/logout', 'LSD\Controllers\AuthController#LogOut');
+$route('POST', '/session/revoke', 'LSD\Controllers\AuthController#Revoke');
 
 $match = $router->match();
 if ($match) {

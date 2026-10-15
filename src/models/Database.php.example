@@ -1,0 +1,27 @@
+<?php
+namespace LSD\Models;
+// Fill this with your credentials and rename it to just "Database.php"
+class Database {
+    const server = "sql";
+    const usernm = "redacted";
+    const passwd = "redacted";
+    const dbname = "lsd";
+
+    public static function Connect() {
+        try {
+            $connection = new \PDO(
+                'mysql:host=' . self::server
+                . ';dbname=' . self::dbname
+                . ';charset=utf8mb4',
+                self::usernm, self::passwd
+            );
+
+            $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $connection->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+            return $connection;
+        } catch (\PDOException $th) {
+            return 'Error !! ' . $th->getMessage();
+        }
+    }
+}
+?>
