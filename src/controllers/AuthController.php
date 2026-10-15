@@ -10,7 +10,7 @@ class AuthController extends BaseController {
 
     public function Revoke() {
         try {
-            if (!isset($this->user_info['id'])) {
+            if (!isset($this->userInfo['id'])) {
                 throw new \Exception('Unauthorized', 401);
             }
 
@@ -20,7 +20,7 @@ class AuthController extends BaseController {
                 throw new \Exception('You must supply the session to revoke.', 400);
             }
 
-            $sessions = $this->model->getSessions($this->user_info['id']);
+            $sessions = $this->sessionModel->getSessions($this->userInfo['id']);
             $found = FALSE;
             foreach ($sessions as $item) {
                 if ($item->id == $id) {
@@ -32,7 +32,7 @@ class AuthController extends BaseController {
                 // even if this is not necessarily true the only legitimate way this gets triggered is if a user tries revoking an already revoked session id
                 throw new \Exception('Session not found.', 404);
             }
-            $this->model->revokeSession($id, $this->user_info['id']);
+            $this->sessionModel->revokeSession($id, $this->userInfo['id']);
         } catch (\Exception $e) {
             http_response_code($e->getCode());
             die($e->getMessage());
@@ -54,12 +54,12 @@ class AuthController extends BaseController {
 
     public function Sessions() {
         try {
-            if (!isset($this->user_info['id'])) {
+            if (!isset($this->userInfo['id'])) {
                 throw new \Exception('Unauthorized', 401);
             }
 
-            $sessions['sessions'] = $this->model->getSessions($this->user_info['id']);
-            $sessions['thissesh'] = $this->user_info['session'];
+            $sessions['sessions'] = $this->sessionModel->getSessions($this->userInfo['id']);
+            $sessions['thissesh'] = $this->userInfo['session'];
             echo json_encode($sessions);
         } catch (\Exception $e) {
             http_response_code($e->getCode());
@@ -69,7 +69,7 @@ class AuthController extends BaseController {
 
     public function Login() {
         try {
-            if (isset($this->user_info['id'])) {
+            if (isset($this->userInfo['id'])) {
                 throw new \Exception('Already authenticated!', 200);
             }
 
@@ -79,10 +79,10 @@ class AuthController extends BaseController {
             if (!$username || !$password) {
                 throw new \Exception('You must supply username and password', 1);
             }
-            $user = $this->model->findUserByUsername($username);
+            $user = $this->userModel->findUserByUsername($username);
             if ($user && password_verify($password, $user['password'])) {
                 foreach (CONFIG['cookie'] as $cookie) {
-                    setcookie($cookie, $this->model->initSession($user['id'], UserModel::getIP()),
+                    setcookie($cookie, $this->sessionModel->initSession($user['id'], parent::getIP()),
                         [
                             'expires' => time() + (86400 * 30),
                             'path' => '/',
