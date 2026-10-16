@@ -1,15 +1,14 @@
 <?php
 namespace LSD\Controllers;
 
-use LSD\Models\UserModel;
-
 class AuthController extends BaseController {
-    public function __CONSTRUCT() {
-        parent::__CONSTRUCT();
-    }
-
     public function Revoke() {
         try {
+            if ($this->ratelimitModel->check(parent::getIP(), "auth") != 0) {
+                throw new \Exception('Please wait before requesting!', 429);
+            }
+            $this->ratelimitModel->add(parent::getIP(), "auth", 2);
+
             if (!isset($this->userInfo['id'])) {
                 throw new \Exception('Unauthorized', 401);
             }
@@ -33,22 +32,32 @@ class AuthController extends BaseController {
                 throw new \Exception('Session not found.', 404);
             }
             $this->sessionModel->revokeSession($id, $this->userInfo['id']);
+            http_response_code(200);
         } catch (\Exception $e) {
             http_response_code($e->getCode());
-            die($e->getMessage());
+            die(json_encode(['error' => $e->getMessage()]));
         }
     }
 
     public function LogOut() {
-        foreach (CONFIG['cookie'] as $cookie) {
-            setcookie($cookie, '', [
-                'expires' => time() - (86400 * 30),
-                'path' => '/',
-                'domain' => CONFIG['domain'],
-                'secure' => CONFIG['secureCookie'],
-                'httponly' => TRUE,
-                'samesite' => 'Strict'
-            ]);
+        try {
+            if (!isset($this->userInfo['id'])) {
+                throw new \Exception('Unauthorized', 401);
+            }
+            foreach (CONFIG['cookie'] as $cookie) {
+                setcookie($cookie, '', [
+                    'expires' => 1,
+                    'path' => '/',
+                    'domain' => CONFIG['domain'],
+                    'secure' => CONFIG['secureCookie'],
+                    'httponly' => TRUE,
+                    'samesite' => 'Strict'
+                ]);
+            }
+            $this->sessionModel->revokeSession($this->userInfo['session'], $this->userInfo['id']);
+        } catch (\Exception $e) {
+            http_response_code($e->getCode());
+            die(json_encode(['error' => $e->getMessage()]));
         }
     }
 
@@ -59,25 +68,30 @@ class AuthController extends BaseController {
             }
 
             $sessions['sessions'] = $this->sessionModel->getSessions($this->userInfo['id']);
-            $sessions['thissesh'] = $this->userInfo['session'];
+            $sessions['active'] = $this->userInfo['session'];
             echo json_encode($sessions);
         } catch (\Exception $e) {
             http_response_code($e->getCode());
-            die($e->getMessage());
+            die(json_encode(['error' => $e->getMessage()]));
         }
     }
 
     public function Login() {
         try {
+            if ($this->ratelimitModel->check(parent::getIP(), "auth") != 0) {
+                throw new \Exception('Please wait before requesting!', 429);
+            }
+            $this->ratelimitModel->add(parent::getIP(), "auth", 2);
+
             if (isset($this->userInfo['id'])) {
-                throw new \Exception('Already authenticated!', 200);
+                throw new \Exception('Already authenticated!', 400);
             }
 
             $username = isset($_POST['username']) ? $_POST['username'] : NULL;
             $password = isset($_POST['password']) ? $_POST['password'] : NULL;
 
             if (!$username || !$password) {
-                throw new \Exception('You must supply username and password', 1);
+                throw new \Exception('You must supply username and password', 400);
             }
             $user = $this->userModel->findUserByUsername($username);
             if ($user && password_verify($password, $user['password'])) {
@@ -93,11 +107,11 @@ class AuthController extends BaseController {
                         ]);
                 }
             } else {
-                throw new \Exception('Invalid credentials', 2);
+                throw new \Exception('Invalid credentials', 401);
             }
         } catch (\Exception $e) {
             http_response_code($e->getCode());
-            die($e->getMessage());
+            die(json_encode(['error' => $e->getMessage()]));
         }
     }
 }

@@ -1,23 +1,18 @@
 <?php
 namespace LSD\Controllers;
 
-use LSD\Models\Database;
-use LSD\Models\SessionModel;
-use LSD\Models\UserModel;
-
 class BaseController {
     protected $userModel;
     protected $sessionModel;
+    protected $ratelimitModel;
     protected $db;
     protected $userInfo = NULL;
-    protected $preferences = NULL;
-    protected $profile = NULL;
-    protected $economy = NULL;
 
-    public function __CONSTRUCT() {
-        $this->db = Database::connect();
-        $this->userModel = new UserModel();
-        $this->sessionModel = new SessionModel();
+    public function __construct() {
+        $this->db = \LSD\Models\Database::connect();
+        $this->userModel = new \LSD\Models\UserModel();
+        $this->sessionModel = new \LSD\Models\SessionModel();
+        $this->ratelimitModel = new \LSD\Models\RatelimitModel();
 
         foreach (CONFIG["cookie"] as $cookie) {
             if (isset($_COOKIE[$cookie])) {
@@ -28,22 +23,6 @@ class BaseController {
         if (isset($this->userInfo['id'])) {
             $this->userInfo['session'] = $this->userInfo['id'];
             $this->userInfo['id'] = $this->userInfo['userid'];
-            // $user_id = $this->user_info['id'];
-            // $this->preferences = $this->model->getUserSettings($user_id);
-            // $this->profile = $this->model->getUserProfile($user_id);
-            // $this->economy = $this->model->getUserEconomy($user_id);
-            // if (!$this->preferences) {
-            //     $stmt = $this->db->prepare('INSERT IGNORE INTO config (id) VALUES (?)');
-            //     $stmt->execute([$user_id]);
-            // }
-            // if (!$this->profile) {
-            //     $stmt = $this->db->prepare('INSERT IGNORE INTO profiles (id) VALUES (?)');
-            //     $stmt->execute([$user_id]);
-            // }
-            // if (!$this->economy) {
-            //     $stmt = $this->db->prepare('INSERT IGNORE INTO economy (id) VALUES (?)');
-            //     $stmt->execute([$user_id]);
-            // }
         }
     }
 
